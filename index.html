@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<style>
+  /* Body styling */
+  body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+    font-family: 'Arial', sans-serif;
+    color: #333;
+  }
+
+  /* Title styling */
+  h1 {
+    margin-bottom: 20px;
+    color: #fff;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Player input fields */
+  .inputs {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  .inputs input {
+    margin: 0 10px;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  .inputs input:focus {
+    border-color: #4CAF50;
+  }
+
+  /* Game board grid */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 120px);
+    grid-gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  /* Individual cell styling */
+  .cell {
+    width: 120px;
+    height: 120px;
+    border-radius: 15px;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Cell hover effect */
+  .cell:hover {
+    background-color: #f0f0f0;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Highlight winning cells */
+  .cell.winner {
+    background-color: #4CAF50;
+    color: white;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Reset button styling */
+  button {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Reset button hover effect */
+  button:hover {
+    background-color: #555;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+</style>
+</head>
+<body>
+<h1>Tic Tac Toe</h1>
+
+<!-- Input fields for player names -->
+<div class="inputs">
+  <label>Player 1 (X): <input type="text" id="player1" placeholder="Enter Player 1 name"></label>
+  <label>Player 2 (O): <input type="text" id="player2" placeholder="Enter Player 2 name"></label>
+</div>
+
+<!-- Game board -->
+<div class="board"></div>
+
+<!-- Reset game button -->
+<button id="resetBtn">Reset Game</button>
+
+<script>
+  const board = document.querySelector('.board');
+  const resetBtn = document.getElementById('resetBtn');
+  let currentPlayer = 'X';
+  let winner = null;
+  const cells = Array.from({ length: 9 }).fill(null);
+
+  // Get the player names from the input fields
+  function getPlayerNames() {
+    const player1 = document.getElementById('player1').value || 'Player 1';
+    const player2 = document.getElementById('player2').value || 'Player 2';
+    return { player1, player2 };
+  }
+
+  // Check if there's a winner
+  function checkWinner() {
+    const winningConditions = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+      [0, 4, 8], [2, 4, 6]             // diagonals
+    ];
+
+    for (let condition of winningConditions) {
+      const [a, b, c] = condition;
+      if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+        return { player: cells[a], winningCells: condition };
+      }
+    }
+
+    return null;
+  }
+
+  // Handle cell click
+  function handleCellClick(index) {
+    if (winner || cells[index]) return;
+
+    cells[index] = currentPlayer;
+    render();
+
+    const result = checkWinner();
+
+    if (result) {
+      winner = result.player;
+      const { player1, player2 } = getPlayerNames();
+      const winnerName = winner === 'X' ? player1 : player2;
+      highlightWinningCells(result.winningCells);
+      setTimeout(() => alert(`${winnerName} wins!`), 100);
+    } else if (!cells.includes(null)) {
+      setTimeout(() => alert("It's a tie!"), 100);
+    } else {
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    }
+  }
+
+  // Highlight the winning cells
+  function highlightWinningCells(winningCells) {
+    winningCells.forEach(index => {
+      document.querySelectorAll('.cell')[index].classList.add('winner');
+    });
+  }
+
+  // Render the board
+  function render() {
+    board.innerHTML = '';
+    cells.forEach((value, index) => {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      cell.textContent = value || '';
+      cell.addEventListener('click', () => handleCellClick(index));
+      board.appendChild(cell);
+    });
+  }
+
+  // Reset the game
+  function resetGame() {
+    cells.fill(null);
+    currentPlayer = 'X';
+    winner = null;
+    render();
+  }
+
+  // Reset button click event
+  resetBtn.addEventListener('click', resetGame);
+
+  // Initial rendering of the board
+  render();
+</script>
+</body>
+</html>
